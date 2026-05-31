@@ -46,19 +46,31 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Text style={styles.logo}>🚗</Text>
 
-      <Text style={styles.title}>Login</Text>
+        <Text style={styles.title}>
+          Motor Check
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Gerencie seus veículos com facilidade
+        </Text>
+      </View>
 
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#9CA3AF"
         value={email}
         onChangeText={setEmail}
+        autoCapitalize="none"
       />
 
       <TextInput
         style={styles.input}
         placeholder="Senha"
+        placeholderTextColor="#9CA3AF"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -73,12 +85,6 @@ export default function LoginScreen({ navigation }: Props) {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity>
-        <Text style={styles.link}>
-          Esqueci minha senha
-        </Text>
-      </TouchableOpacity>
-
       <TouchableOpacity
         onPress={() => navigation.navigate('Register')}
       >
@@ -86,7 +92,6 @@ export default function LoginScreen({ navigation }: Props) {
           Criar conta
         </Text>
       </TouchableOpacity>
-
     </View>
   );
 }
@@ -96,44 +101,74 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 25,
-    backgroundColor: '#fff',
+    backgroundColor: '#F8F9FA',
+  },
+
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 50,
+  },
+
+  logo: {
+    fontSize: 70,
   },
 
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 30,
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+
+  subtitle: {
+    fontSize: 15,
+    color: '#6B7280',
+    marginTop: 8,
     textAlign: 'center',
   },
 
   input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 15,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    height: 55,
+    paddingHorizontal: 16,
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+    fontSize: 16,
   },
 
   button: {
-    height: 50,
-    backgroundColor: '#007AFF',
-    borderRadius: 10,
+    height: 55,
+    backgroundColor: '#FF8C00',
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
+
+    shadowColor: '#FF8C00',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+
+    elevation: 5,
   },
 
   buttonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
 
   link: {
-    color: '#007AFF',
+    color: '#FFC107',
     textAlign: 'center',
-    marginTop: 15,
+    marginTop: 20,
     fontSize: 16,
+    fontWeight: '600',
   },
 });
