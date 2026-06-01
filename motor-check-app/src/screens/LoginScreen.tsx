@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = {
   navigation: any;
@@ -19,7 +20,7 @@ export default function LoginScreen({ navigation }: Props) {
   const handleLogin = async () => {
     try {
       const response = await fetch(
-        'http://26.190.140.131:3000/login',
+        'http://26.190.140.131:3333/login',
         {
           method: 'POST',
           headers: {
@@ -35,6 +36,12 @@ export default function LoginScreen({ navigation }: Props) {
       const data = await response.json();
 
       if (response.ok) {
+
+        await AsyncStorage.setItem(
+          '@token',
+          data.token
+        );
+
         navigation.navigate('Home');
       } else {
         Alert.alert('Erro', data.error);

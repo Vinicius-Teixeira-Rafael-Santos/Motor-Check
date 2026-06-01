@@ -3,30 +3,37 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import VehicleScreen from '../screens/VehicleScreen';
 
 const Stack = createNativeStackNavigator();
 
-export default function Routes() {
+export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName="Login"
-        screenOptions={{
-        headerShown: false,
-        }}
-      >
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
 
         <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            />
+          name="Register"
+          component={RegisterScreen}
+          options={{ title: 'Cadastro' }}
+        />
 
-            <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-            />
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+        />
 
-        </Stack.Navigator>
+        <Stack.Screen
+          name="Vehicle"
+          component={VehicleScreen}
+        />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }

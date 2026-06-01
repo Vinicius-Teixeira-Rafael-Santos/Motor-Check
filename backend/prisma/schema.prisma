@@ -8,8 +8,107 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
+  id        Int       @id @default(autoincrement())
+
+  nome      String
+  email     String    @unique
+  senha     String
+
+  veiculos  Vehicle[]
+}
+
+model Vehicle {
+  id                Int      @id @default(autoincrement())
+
+  usuarioId         Int
+  usuario           User     @relation(fields: [usuarioId], references: [id])
+
+  nome              String?
+  placa             String   @unique
+  modelo            String
+  marca             String?
+
+  ano               Int?
+
+  quilometragem     Int      @default(0)
+
+  combustivel       String
+  tipo              String
+
+  // leve | moderado | intenso
+  tipoUso           String   @default("moderado")
+
+  manutencoes       Maintenance[]
+
+  revisoes          Revision[]
+
+  criadoEm          DateTime @default(now())
+}
+
+model MaintenanceType {
+  id                          Int      @id @default(autoincrement())
+
+  nome                        String
+
+  // Intervalos variando pelo tipo de uso
+
+  intervaloLeveKm             Int?
+  intervaloModeradoKm         Int?
+  intervaloIntensoKm          Int?
+
+  intervaloPadraoDias         Int?
+
+  obrigatorioMoto             Boolean  @default(true)
+  obrigatorioCarro            Boolean  @default(true)
+
+  manutencoes                 Maintenance[]
+}
+
+model Maintenance {
+  id                          Int      @id @default(autoincrement())
+
+  veiculoId                   Int
+  tipoManutencaoId            Int
+
+  veiculo                     Vehicle @relation(fields: [veiculoId], references: [id])
+
+  tipoManutencao              MaintenanceType @relation(fields: [tipoManutencaoId], references: [id])
+
+  // Última troca
+
+  ultimaTrocaKm               Int?
+
+  ultimaTrocaData             DateTime?
+
+  // Próxima troca calculada automaticamente
+
+  proximaTrocaKm              Int?
+
+  proximaTrocaData            DateTime?
+
+  observacoes                 String?
+
+  criadoEm                    DateTime @default(now())
+}
+
+model Revision {
+  id                          Int      @id @default(autoincrement())
+
+  veiculoId                   Int
+
+  veiculo                     Vehicle @relation(fields: [veiculoId], references: [id])
+
+  nome                        String
+
+  ultimaRevisaoKm             Int?
+
+  ultimaRevisaoData           DateTime?
+
+  proximaRevisaoKm            Int?
+
+  proximaRevisaoData          DateTime?
+
+  observacoes                 String?
+
+  criadoEm                    DateTime @default(now())
 }

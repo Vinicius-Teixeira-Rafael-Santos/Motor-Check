@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+
+import vehicleRoutes from './routes/vehicle.routes';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -9,9 +12,13 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
+/* ROTAS DE VEÍCULO */
+app.use('/vehicles', vehicleRoutes);
+
 /* REGISTER */
 app.post('/register', async (req, res) => {
   try {
+
     const { name, email, password } = req.body;
 
     const userExists = await prisma.user.findUnique({
@@ -30,14 +37,18 @@ app.post('/register', async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        name,
+        nome: name,
         email,
-        password: hashedPassword,
+        senha: hashedPassword,
       },
     });
 
     return res.status(201).json(user);
+
   } catch (error) {
+
+    console.log(error);
+
     return res.status(500).json({
       error: 'Erro interno do servidor',
     });
@@ -46,13 +57,13 @@ app.post('/register', async (req, res) => {
 
 /* LOGIN */
 app.post('/login', async (req, res) => {
+
   try {
+
     const { email, password } = req.body;
 
     const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
+      where: { email },
     });
 
     if (!user) {
@@ -63,7 +74,7 @@ app.post('/login', async (req, res) => {
 
     const passwordMatch = await bcrypt.compare(
       password,
-      user.password
+      user.senha
     );
 
     if (!passwordMatch) {
@@ -72,17 +83,29 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    return res.status(200).json({
-      message: 'Login realizado',
+    const token = jwt.sign(
+      {
+        id: user.id,
+      },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: '7d',
+      }
+    );
+
+    return res.json({
       user,
+      token,
     });
+
   } catch (error) {
+
     return res.status(500).json({
-      error: 'Erro interno do servidor',
+      error: 'Erro interno',
     });
   }
 });
 
-app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
+app.listen(3333, () => {
+  console.log('Servidor rodando na porta 3333');
 });
