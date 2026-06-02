@@ -16,7 +16,7 @@ export default function RegisterScreen({ navigation }: any) {
   async function handleRegister() {
     try {
       const response = await fetch(
-        'http://192.168.0.122:3000/register',
+        'http://192.168.1.116:3333/register',
         {
           method: 'POST',
           headers: {

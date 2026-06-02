@@ -7,17 +7,14 @@ const prisma = new PrismaClient();
 
 /* LISTAR VEÍCULOS */
 router.get('/', async (req, res) => {
-
   const vehicles = await prisma.vehicle.findMany();
 
   return res.json(vehicles);
 });
 
 /* CRIAR VEÍCULO */
-router.post('/vehicles', auth, async (req, res) => {
-
+router.post('/', auth, async (req, res) => {
   try {
-
     const {
       placa,
       modelo,
@@ -30,7 +27,7 @@ router.post('/vehicles', auth, async (req, res) => {
 
     const vehicle = await prisma.vehicle.create({
       data: {
-        usuarioId: req.userId,
+        usuarioId: (req as any).userId,
         placa,
         modelo,
         marca,
@@ -42,9 +39,7 @@ router.post('/vehicles', auth, async (req, res) => {
     });
 
     return res.status(201).json(vehicle);
-
   } catch (error) {
-
     console.log(error);
 
     return res.status(500).json({

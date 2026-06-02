@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }: Props) {
   const handleLogin = async () => {
     try {
       const response = await fetch(
-        'http://26.190.140.131:3333/login',
+        'http://192.168.1.116:3333/login',
         {
           method: 'POST',
           headers: {

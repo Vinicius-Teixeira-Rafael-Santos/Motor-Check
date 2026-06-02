@@ -10,7 +10,6 @@ export function auth(
   res: Response,
   next: NextFunction
 ): void {
-
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -24,18 +23,15 @@ export function auth(
   const [, token] = authHeader.split(' ');
 
   try {
-
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string
     ) as TokenPayload;
 
-    req.userId = decoded.id;
+    (req as any).userId = decoded.id;
 
     next();
-
   } catch {
-
     res.status(401).json({
       error: 'Token inválido',
     });
