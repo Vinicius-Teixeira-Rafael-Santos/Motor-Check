@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 import {
@@ -23,10 +23,7 @@ type Vehicle = {
   km: number;
 };
 
-
-
 export default function HomeScreen({ navigation }: Props) {
-
   const [modalVisible, setModalVisible] = useState(false);
 
   const [nome, setNome] = useState('');
@@ -34,26 +31,37 @@ export default function HomeScreen({ navigation }: Props) {
   const [placa, setPlaca] = useState('');
   const [km, setKm] = useState('');
 
-  const [veiculos, setVeiculos] = useState<Vehicle[]>([
-    {
-      id: 1,
-      nome: 'Honda Civic',
-      modelo: 'Civic EX',
-      placa: 'ABC-1234',
-      km: 20000,
-    },
-  ]);
+  const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    loadVehicles();
+  }, []);
+
+  async function loadVehicles() {
+    try {
+      const response = await api.get('/vehicles');
+
+      const vehicles = response.data.map((v: any) => ({
+        id: v.id,
+        nome: v.marca || 'Sem marca',
+        modelo: v.modelo,
+        placa: v.placa,
+        km: v.quilometragem,
+      }));
+
+      setVeiculos(vehicles);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async function adicionarVeiculo() {
-
     if (!nome || !modelo || !placa || !km) {
       return;
     }
 
     try {
-
-      const response = await api.post('/vehicles', {
-        usuarioId: 1,
+      await api.post('/vehicles', {
         placa,
         modelo,
         marca: nome,
@@ -62,18 +70,6 @@ export default function HomeScreen({ navigation }: Props) {
         tipo: 'carro',
       });
 
-      const veiculoCriado = response.data;
-
-      const novoVeiculo: Vehicle = {
-        id: veiculoCriado.id,
-        nome,
-        modelo,
-        placa,
-        km: veiculoCriado.quilometragem,
-      };
-
-      setVeiculos([...veiculos, novoVeiculo]);
-
       setNome('');
       setModelo('');
       setPlaca('');
@@ -81,6 +77,7 @@ export default function HomeScreen({ navigation }: Props) {
 
       setModalVisible(false);
 
+      await loadVehicles();
     } catch (error) {
       console.log(error);
     }
@@ -88,9 +85,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-
       <ScrollView contentContainerStyle={styles.scrollContent}>
-
         <Text style={styles.welcome}>
           Olá
         </Text>
@@ -120,7 +115,9 @@ export default function HomeScreen({ navigation }: Props) {
             key={veiculo.id}
             style={styles.card}
             onPress={() =>
-              navigation.navigate('Vehicle')
+              navigation.navigate('Vehicle', {
+                vehicleId: veiculo.id,
+              })
             }
           >
             <Text style={styles.nome}>
@@ -142,8 +139,6 @@ export default function HomeScreen({ navigation }: Props) {
         ))}
       </ScrollView>
 
-      {/* FAB */}
-
       <TouchableOpacity
         style={styles.fab}
         onPress={() => setModalVisible(true)}
@@ -152,17 +147,13 @@ export default function HomeScreen({ navigation }: Props) {
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
 
-      {/* MODAL */}
-
       <Modal
         visible={modalVisible}
         animationType="slide"
         transparent
       >
         <View style={styles.modalOverlay}>
-
           <View style={styles.modalContainer}>
-
             <Text style={styles.modalTitle}>
               Adicionar Veículo
             </Text>
@@ -206,24 +197,20 @@ export default function HomeScreen({ navigation }: Props) {
             </TouchableOpacity>
 
             <TouchableOpacity
-            
               onPress={() => setModalVisible(false)}
             >
               <Text style={styles.cancelText}>
                 Cancelar
               </Text>
             </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
@@ -305,17 +292,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 20,
-
     width: 65,
     height: 65,
-
     borderRadius: 50,
-
     backgroundColor: '#FF8C00',
-
     justifyContent: 'center',
     alignItems: 'center',
-
     elevation: 8,
   },
 
@@ -328,7 +310,6 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-
     justifyContent: 'center',
     padding: 20,
   },
@@ -348,27 +329,19 @@ const styles = StyleSheet.create({
 
   input: {
     height: 50,
-
     borderWidth: 1,
     borderColor: '#DDD',
-
     borderRadius: 12,
-
     paddingHorizontal: 15,
-
     marginBottom: 15,
   },
 
   addButton: {
     backgroundColor: '#FF8C00',
-
     height: 50,
-
     borderRadius: 12,
-
     justifyContent: 'center',
     alignItems: 'center',
-
     marginTop: 10,
   },
 
@@ -383,5 +356,4 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: '#6B7280',
   },
-
 });

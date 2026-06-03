@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '../services/api';
 
 import {
   View,
@@ -8,37 +9,62 @@ import {
   ScrollView,
 } from 'react-native';
 
-export default function VehicleScreen() {
+export default function VehicleScreen({ route }: any) {
+  const { vehicleId } = route.params;
+
   const [infoExpanded, setInfoExpanded] = useState(false);
   const [preventiveExpanded, setPreventiveExpanded] = useState(false);
 
+  const [vehicle, setVehicle] = useState<any>(null);
+
+  useEffect(() => {
+    loadVehicle();
+  }, []);
+
+  async function loadVehicle() {
+    try {
+      const response = await api.get(`/vehicles/${vehicleId}`);
+      setVehicle(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  if (!vehicle) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Text>Carregando...</Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-    >
-      {/* Foto */}
+    <ScrollView contentContainerStyle={styles.container}>
       <TouchableOpacity style={styles.photoContainer}>
         <Text style={styles.plus}>+</Text>
       </TouchableOpacity>
 
-      {/* Nome */}
       <Text style={styles.name}>
-        Veículo 1
+        {vehicle.marca || vehicle.modelo}
       </Text>
 
-      {/* Quilometragem */}
       <Text style={styles.km}>
-        KM: 20.000
+        KM: {vehicle.quilometragem?.toLocaleString()}
       </Text>
 
-      {/* Última manutenção */}
       <View style={styles.maintenanceBox}>
         <Text style={styles.maintenanceText}>
           Última manutenção:
         </Text>
 
         <Text style={styles.maintenanceInfo}>
-          5.000 km • há 3 meses
+          Não registrada
         </Text>
 
         <Text style={styles.maintenanceText}>
@@ -46,16 +72,13 @@ export default function VehicleScreen() {
         </Text>
 
         <Text style={styles.maintenanceInfo}>
-          25.000 km ou em 3 meses
+          Consulte o plano de manutenção
         </Text>
       </View>
 
-      {/* CARD INFORMAÇÕES */}
       <TouchableOpacity
         style={styles.card}
-        onPress={() =>
-          setInfoExpanded(!infoExpanded)
-        }
+        onPress={() => setInfoExpanded(!infoExpanded)}
       >
         <Text style={styles.cardTitle}>
           Informações do veículo
@@ -63,266 +86,193 @@ export default function VehicleScreen() {
 
         {infoExpanded && (
           <View style={styles.cardContent}>
-
             <Text style={styles.item}>
-              • Tipo: Carro
+              • Tipo: {vehicle.tipo}
             </Text>
 
             <Text style={styles.item}>
-              • Placa: ABC-1234
+              • Placa: {vehicle.placa}
             </Text>
 
             <Text style={styles.item}>
-              • Modelo: Civic
+              • Modelo: {vehicle.modelo}
             </Text>
 
             <Text style={styles.item}>
-              • Ano: 2020
+              • Marca: {vehicle.marca || 'Não informado'}
             </Text>
 
             <Text style={styles.item}>
-              • Quilometragem: 20.000 km
+              • Ano: {vehicle.ano || 'Não informado'}
             </Text>
 
             <Text style={styles.item}>
-              • Combustível: Flex
+              • Quilometragem:{' '}
+              {vehicle.quilometragem?.toLocaleString()} km
+            </Text>
+
+            <Text style={styles.item}>
+              • Combustível: {vehicle.combustivel}
             </Text>
           </View>
         )}
       </TouchableOpacity>
 
-      {/* CARD PREVENTIVAS */}
       <TouchableOpacity
         style={styles.card}
         onPress={() =>
-            setPreventiveExpanded(!preventiveExpanded)
+          setPreventiveExpanded(!preventiveExpanded)
         }
-        >
+      >
         <Text style={styles.cardTitle}>
-            Preventivas
+          Preventivas
         </Text>
 
         {preventiveExpanded && (
-            <View style={styles.cardContent}>
-
+          <View style={styles.cardContent}>
             <Text style={styles.itemTitle}>
-                Troca de óleo
+              Troca de óleo
             </Text>
 
             <Text style={styles.itemInfo}>
-                Última: 15.000 km
+              Última: Não registrada
             </Text>
 
             <Text style={styles.itemInfo}>
-                Próxima: 20.000 km
-            </Text>
-
-            <Text style={styles.itemTitle}>
-                Filtro de óleo
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Última: 15.000 km
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Próxima: 20.000 km
+              Próxima: 10.000 km
             </Text>
 
             <Text style={styles.itemTitle}>
-                Filtro de ar
+              Filtro de óleo
             </Text>
 
             <Text style={styles.itemInfo}>
-                Última: 10.000 km
+              Última: Não registrada
             </Text>
 
             <Text style={styles.itemInfo}>
-                Próxima: 20.000 km
+              Próxima: 10.000 km
             </Text>
 
             <Text style={styles.itemTitle}>
-                Filtro de combustível
+              Filtro de ar
             </Text>
 
             <Text style={styles.itemInfo}>
-                Última: 10.000 km
+              Última: Não registrada
             </Text>
 
             <Text style={styles.itemInfo}>
-                Próxima: 20.000 km
+              Próxima: 20.000 km
             </Text>
 
             <Text style={styles.itemTitle}>
-                Velas
+              Velas
             </Text>
 
             <Text style={styles.itemInfo}>
-                Última: 0 km
+              Última: Não registrada
             </Text>
 
             <Text style={styles.itemInfo}>
-                Próxima: 40.000 km
+              Próxima: 40.000 km
             </Text>
-
-            <Text style={styles.itemTitle}>
-                Correia dentada
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Última: 0 km
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Próxima: 60.000 km
-            </Text>
-
-            <Text style={styles.itemTitle}>
-                Fluido de freio
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Última: 12.000 km
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Próxima: 24.000 km
-            </Text>
-
-            <Text style={styles.itemTitle}>
-                Radiador
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Última: 0 km
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Próxima: 50.000 km
-            </Text>
-
-            <Text style={styles.itemTitle}>
-                Suspensão
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Última: 8.000 km
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Próxima: 30.000 km
-            </Text>
-
-            <Text style={styles.itemTitle}>
-                Pneus
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Última: 18.000 km
-            </Text>
-
-            <Text style={styles.itemInfo}>
-                Próxima: 40.000 km
-            </Text>
-
-            </View>
+          </View>
         )}
-        </TouchableOpacity>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        alignItems: 'center',
-        paddingTop: 40,
-        paddingBottom: 40,
-        backgroundColor: '#fff',
-    },
+  container: {
+    alignItems: 'center',
+    paddingTop: 40,
+    paddingBottom: 40,
+    backgroundColor: '#fff',
+  },
 
-    photoContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 75,
-        backgroundColor: '#E5E5E5',
+  photoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 75,
+    backgroundColor: '#E5E5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
 
-        justifyContent: 'center',
-        alignItems: 'center',
+  plus: {
+    fontSize: 50,
+    color: '#777',
+    fontWeight: '300',
+  },
 
-        marginBottom: 20,
-    },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
 
-    plus: {
-        fontSize: 50,
-        color: '#777',
-        fontWeight: '300',
-    },
+  km: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+  },
 
-    name: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
+  maintenanceBox: {
+    width: '90%',
+    backgroundColor: '#F5F5F5',
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
 
-    km: {
-        fontSize: 16,
-        color: '#666',
-        marginBottom: 20,
-    },
+  maintenanceText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
 
-    maintenanceBox: {
-        width: '90%',
-        backgroundColor: '#F5F5F5',
-        padding: 15,
-        borderRadius: 15,
-        marginBottom: 20,
-    },
+  maintenanceInfo: {
+    fontSize: 15,
+    color: '#555',
+    marginBottom: 5,
+  },
 
-    maintenanceText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 5,
-    },
+  card: {
+    width: '90%',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 15,
+    padding: 18,
+    marginBottom: 15,
+  },
 
-    maintenanceInfo: {
-        fontSize: 15,
-        color: '#555',
-        marginBottom: 5,
-    },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 
-    card: {
-        width: '90%',
-        backgroundColor: '#F5F5F5',
-        borderRadius: 15,
-        padding: 18,
-        marginBottom: 15,
-    },
+  cardContent: {
+    marginTop: 15,
+  },
 
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
+  item: {
+    fontSize: 16,
+    marginBottom: 10,
+    color: '#444',
+  },
 
-    cardContent: {
-        marginTop: 15,
-    },
-
-    item: {
-        fontSize: 16,
-        marginBottom: 10,
-        color: '#444',
-    },
-
-    itemTitle: {
+  itemTitle: {
     fontSize: 17,
     fontWeight: 'bold',
     marginTop: 15,
     color: '#222',
-    },
+  },
 
-    itemInfo: {
+  itemInfo: {
     fontSize: 15,
     color: '#555',
     marginTop: 3,
-    },
+  },
 });
