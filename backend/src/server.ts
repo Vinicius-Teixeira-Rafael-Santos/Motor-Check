@@ -5,12 +5,16 @@ import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
 import vehicleRoutes from './routes/vehicle.routes';
+import fipeRoutes from './routes/fipe.routes';
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+
+/* ROTAS DA FIPE */
+app.use('/fipe', fipeRoutes);
 
 /* ROTAS DE VEÍCULO */
 app.use('/vehicles', vehicleRoutes);

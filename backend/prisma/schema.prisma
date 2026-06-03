@@ -24,9 +24,16 @@ model Vehicle {
   usuario           User     @relation(fields: [usuarioId], references: [id])
 
   nome              String?
+
   placa             String   @unique
+
   modelo            String
   marca             String?
+
+  // FIPE
+  codigoMarcaFipe   String?
+  codigoModeloFipe  String?
+  codigoAnoFipe     String?
 
   ano               Int?
 
@@ -50,8 +57,6 @@ model MaintenanceType {
 
   nome                        String
 
-  // Intervalos variando pelo tipo de uso
-
   intervaloLeveKm             Int?
   intervaloModeradoKm         Int?
   intervaloIntensoKm          Int?
@@ -74,13 +79,9 @@ model Maintenance {
 
   tipoManutencao              MaintenanceType @relation(fields: [tipoManutencaoId], references: [id])
 
-  // Última troca
-
   ultimaTrocaKm               Int?
 
   ultimaTrocaData             DateTime?
-
-  // Próxima troca calculada automaticamente
 
   proximaTrocaKm              Int?
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { Picker } from '@react-native-picker/picker';
 
 import {
   View,
@@ -33,9 +34,20 @@ export default function HomeScreen({ navigation }: Props) {
 
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
 
+  const [tipo, setTipo] = useState('carros');
+
+  const [marcas, setMarcas] = useState<any[]>([]);
+  const [modelos, setModelos] = useState<any[]>([]);
+  const [anos, setAnos] = useState<any[]>([]);
+
+  const [marcaId, setMarcaId] = useState('');
+  const [modeloId, setModeloId] = useState('');
+  const [anoId, setAnoId] = useState('');
+
   useEffect(() => {
-    loadVehicles();
-  }, []);
+  loadVehicles();
+  loadMarcas(tipo);
+}, []);
 
   async function loadVehicles() {
     try {
@@ -54,6 +66,42 @@ export default function HomeScreen({ navigation }: Props) {
       console.log(error);
     }
   }
+
+  async function loadMarcas(tipoSelecionado: string) {
+  try {
+    const response = await api.get(
+      `/fipe/marcas/${tipoSelecionado}`
+    );
+
+    setMarcas(response.data);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function loadModelos(marca: string) {
+  try {
+    const response = await api.get(
+      `/fipe/modelos/${tipo}/${marca}`
+    );
+
+    setModelos(response.data);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function loadAnos(modelo: string) {
+  try {
+    const response = await api.get(
+      `/fipe/anos/${tipo}/${marcaId}/${modelo}`
+    );
+
+    setAnos(response.data);
+  } catch (error) {
+    console.log(error);
+  }
+}
 
   async function adicionarVeiculo() {
     if (!nome || !modelo || !placa || !km) {

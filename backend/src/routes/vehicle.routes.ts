@@ -64,18 +64,27 @@ router.post('/', auth, async (req, res) => {
       quilometragem,
       combustivel,
       tipo,
+      codigoMarcaFipe,
+      codigoModeloFipe,
+      codigoAnoFipe,
     } = req.body;
 
     const vehicle = await prisma.vehicle.create({
       data: {
         usuarioId: (req as any).userId,
+
         placa,
         modelo,
         marca,
         ano,
+
         quilometragem,
         combustivel,
         tipo,
+
+        codigoMarcaFipe,
+        codigoModeloFipe,
+        codigoAnoFipe,
       },
     });
 
@@ -105,11 +114,35 @@ router.put('/:id', auth, async (req, res) => {
       });
     }
 
+    const {
+      placa,
+      modelo,
+      marca,
+      ano,
+      quilometragem,
+      combustivel,
+      tipo,
+      codigoMarcaFipe,
+      codigoModeloFipe,
+      codigoAnoFipe,
+    } = req.body;
+
     const updatedVehicle = await prisma.vehicle.update({
       where: {
         id: Number(req.params.id),
       },
-      data: req.body,
+      data: {
+        placa,
+        modelo,
+        marca,
+        ano,
+        quilometragem,
+        combustivel,
+        tipo,
+        codigoMarcaFipe,
+        codigoModeloFipe,
+        codigoAnoFipe,
+      },
     });
 
     return res.json(updatedVehicle);
