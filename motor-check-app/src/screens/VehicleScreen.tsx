@@ -7,16 +7,37 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  TextInput,
+  Modal,
+  Alert,
 } from 'react-native';
 
-export default function VehicleScreen({ route }: any) {
+export default function VehicleScreen({
+  route,
+  navigation,
+}: any) {
   const { vehicleId } = route.params;
 
   const [infoExpanded, setInfoExpanded] = useState(false);
-  const [preventiveExpanded, setPreventiveExpanded] = useState(false);
+  const [preventiveExpanded, setPreventiveExpanded] =
+    useState(false);
 
   const [vehicle, setVehicle] = useState<any>(null);
   const [maintenances, setMaintenances] = useState<any[]>([]);
+
+  const [editModalVisible, setEditModalVisible] =
+    useState(false);
+
+  const [placa, setPlaca] = useState('');
+  const [modelo, setModelo] = useState('');
+  const [marca, setMarca] = useState('');
+  const [ano, setAno] = useState('');
+  const [quilometragem, setQuilometragem] =
+    useState('');
+  const [combustivel, setCombustivel] =
+    useState('');
+  const [tipo, setTipo] = useState('');
+  const [tipoUso, setTipoUso] = useState('');
 
   useEffect(() => {
     loadVehicle();
@@ -25,8 +46,30 @@ export default function VehicleScreen({ route }: any) {
 
   async function loadVehicle() {
     try {
-      const response = await api.get(`/vehicles/${vehicleId}`);
+      const response = await api.get(
+        `/vehicles/${vehicleId}`
+      );
+
       setVehicle(response.data);
+
+      setPlaca(response.data.placa || '');
+      setModelo(response.data.modelo || '');
+      setMarca(response.data.marca || '');
+      setAno(
+        response.data.ano
+          ? String(response.data.ano)
+          : ''
+      );
+      setQuilometragem(
+        String(response.data.quilometragem || 0)
+      );
+      setCombustivel(
+        response.data.combustivel || ''
+      );
+      setTipo(response.data.tipo || '');
+      setTipoUso(
+        response.data.tipoUso || 'moderado'
+      );
     } catch (error) {
       console.log(error);
     }
@@ -44,7 +87,80 @@ export default function VehicleScreen({ route }: any) {
     }
   }
 
-  function getStatusColor(status: string) {
+  async function updateVehicle() {
+    try {
+      await api.put(`/vehicles/${vehicleId}`, {
+        placa,
+        modelo,
+        marca,
+        ano: Number(ano),
+        quilometragem: Number(
+          quilometragem
+        ),
+        combustivel,
+        tipo,
+        tipoUso,
+      });
+
+      setEditModalVisible(false);
+
+      await loadVehicle();
+
+      Alert.alert(
+        'Sucesso',
+        'Veículo atualizado.'
+      );
+    } catch (error) {
+      console.log(error);
+
+      Alert.alert(
+        'Erro',
+        'Não foi possível atualizar.'
+      );
+    }
+  }
+
+  function deleteVehicle() {
+    Alert.alert(
+      'Excluir veículo',
+      'Deseja realmente excluir este veículo?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(
+                `/vehicles/${vehicleId}`
+              );
+
+              Alert.alert(
+                'Sucesso',
+                'Veículo removido.'
+              );
+
+              navigation.goBack();
+            } catch (error) {
+              console.log(error);
+
+              Alert.alert(
+                'Erro',
+                'Não foi possível excluir.'
+              );
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  function getStatusColor(
+    status: string
+  ) {
     switch (status) {
       case 'ATRASADA':
         return '#DC2626';
@@ -75,142 +191,296 @@ export default function VehicleScreen({ route }: any) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity style={styles.photoContainer}>
-        <Text style={styles.plus}>+</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.name}>
-        {vehicle.marca || vehicle.modelo}
-      </Text>
-
-      <Text style={styles.km}>
-        KM: {vehicle.quilometragem?.toLocaleString()}
-      </Text>
-
-      <View style={styles.maintenanceBox}>
-        <Text style={styles.maintenanceText}>
-          Total de preventivas:
-        </Text>
-
-        <Text style={styles.maintenanceInfo}>
-          {maintenances.length}
-        </Text>
-
-        <Text style={styles.maintenanceText}>
-          Quilometragem atual:
-        </Text>
-
-        <Text style={styles.maintenanceInfo}>
-          {vehicle.quilometragem?.toLocaleString()} km
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => setInfoExpanded(!infoExpanded)}
+    <>
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
       >
-        <Text style={styles.cardTitle}>
-          Informações do veículo
-        </Text>
+        <ScrollView
+          style={{
+            flex: 1,
+            padding: 20,
+          }}
+        >
+          <Text style={styles.modalTitle}>
+            Editar Veículo
+          </Text>
 
-        {infoExpanded && (
-          <View style={styles.cardContent}>
-            <Text style={styles.item}>
-              • Tipo: {vehicle.tipo}
+          <TextInput
+            style={styles.input}
+            placeholder="Placa"
+            value={placa}
+            onChangeText={setPlaca}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Modelo"
+            value={modelo}
+            onChangeText={setModelo}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Marca"
+            value={marca}
+            onChangeText={setMarca}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Ano"
+            keyboardType="numeric"
+            value={ano}
+            onChangeText={setAno}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Quilometragem"
+            keyboardType="numeric"
+            value={quilometragem}
+            onChangeText={
+              setQuilometragem
+            }
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Combustível"
+            value={combustivel}
+            onChangeText={
+              setCombustivel
+            }
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Tipo"
+            value={tipo}
+            onChangeText={setTipo}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Tipo de uso"
+            value={tipoUso}
+            onChangeText={setTipoUso}
+          />
+
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={updateVehicle}
+          >
+            <Text
+              style={styles.buttonText}
+            >
+              Salvar Alterações
             </Text>
+          </TouchableOpacity>
 
-            <Text style={styles.item}>
-              • Placa: {vehicle.placa}
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() =>
+              setEditModalVisible(false)
+            }
+          >
+            <Text
+              style={styles.buttonText}
+            >
+              Cancelar
             </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </Modal>
 
-            <Text style={styles.item}>
-              • Modelo: {vehicle.modelo}
-            </Text>
-
-            <Text style={styles.item}>
-              • Marca: {vehicle.marca || 'Não informado'}
-            </Text>
-
-            <Text style={styles.item}>
-              • Ano: {vehicle.ano || 'Não informado'}
-            </Text>
-
-            <Text style={styles.item}>
-              • Quilometragem:{' '}
-              {vehicle.quilometragem?.toLocaleString()} km
-            </Text>
-
-            <Text style={styles.item}>
-              • Combustível: {vehicle.combustivel}
-            </Text>
-
-            <Text style={styles.item}>
-              • Tipo de uso: {vehicle.tipoUso}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() =>
-          setPreventiveExpanded(!preventiveExpanded)
+      <ScrollView
+        contentContainerStyle={
+          styles.container
         }
-      >
-        <Text style={styles.cardTitle}>
-          Preventivas
+      >        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => setEditModalVisible(true)}
+        >
+          <Text style={styles.buttonText}>
+            Editar Veículo
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={deleteVehicle}
+        >
+          <Text style={styles.buttonText}>
+            Excluir Veículo
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.photoContainer}>
+          <Text style={styles.plus}>+</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.name}>
+          {vehicle.marca || vehicle.modelo}
         </Text>
 
-        {preventiveExpanded && (
-          <View style={styles.cardContent}>
-            {maintenances.length === 0 ? (
-              <Text style={styles.itemInfo}>
-                Nenhuma preventiva encontrada.
+        <Text style={styles.km}>
+          KM: {vehicle.quilometragem?.toLocaleString()}
+        </Text>
+
+        <View style={styles.maintenanceBox}>
+          <Text style={styles.maintenanceText}>
+            Total de preventivas:
+          </Text>
+
+          <Text style={styles.maintenanceInfo}>
+            {maintenances.length}
+          </Text>
+
+          <Text style={styles.maintenanceText}>
+            Quilometragem atual:
+          </Text>
+
+          <Text style={styles.maintenanceInfo}>
+            {vehicle.quilometragem?.toLocaleString()} km
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() =>
+            setInfoExpanded(!infoExpanded)
+          }
+        >
+          <Text style={styles.cardTitle}>
+            Informações do veículo
+          </Text>
+
+          {infoExpanded && (
+            <View style={styles.cardContent}>
+              <Text style={styles.item}>
+                • Tipo: {vehicle.tipo}
               </Text>
-            ) : (
-              maintenances.map(item => (
-                <View
-                  key={item.tipoManutencaoId}
-                  style={styles.maintenanceItem}
-                >
-                  <Text style={styles.itemTitle}>
-                    {item.nome}
-                  </Text>
 
-                  <Text style={styles.itemInfo}>
-                    Última troca:{' '}
-                    {item.ultimaTrocaKm
-                      ? `${item.ultimaTrocaKm.toLocaleString()} km`
-                      : 'Não registrada'}
-                  </Text>
+              <Text style={styles.item}>
+                • Placa: {vehicle.placa}
+              </Text>
 
-                  <Text style={styles.itemInfo}>
-                    Próxima troca:{' '}
-                    {item.proximaTrocaKm
-                      ? `${item.proximaTrocaKm.toLocaleString()} km`
-                      : 'Não definida'}
-                  </Text>
+              <Text style={styles.item}>
+                • Modelo: {vehicle.modelo}
+              </Text>
 
-                  <Text
-                    style={[
-                      styles.status,
-                      {
-                        color: getStatusColor(
-                          item.status
-                        ),
-                      },
-                    ]}
+              <Text style={styles.item}>
+                • Marca:{' '}
+                {vehicle.marca ||
+                  'Não informado'}
+              </Text>
+
+              <Text style={styles.item}>
+                • Ano:{' '}
+                {vehicle.ano ||
+                  'Não informado'}
+              </Text>
+
+              <Text style={styles.item}>
+                • Quilometragem:{' '}
+                {vehicle.quilometragem?.toLocaleString()}{' '}
+                km
+              </Text>
+
+              <Text style={styles.item}>
+                • Combustível:{' '}
+                {vehicle.combustivel}
+              </Text>
+
+              <Text style={styles.item}>
+                • Tipo de uso:{' '}
+                {vehicle.tipoUso}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() =>
+            setPreventiveExpanded(
+              !preventiveExpanded
+            )
+          }
+        >
+          <Text style={styles.cardTitle}>
+            Preventivas
+          </Text>
+
+          {preventiveExpanded && (
+            <View style={styles.cardContent}>
+              {maintenances.length === 0 ? (
+                <Text style={styles.itemInfo}>
+                  Nenhuma preventiva
+                  encontrada.
+                </Text>
+              ) : (
+                maintenances.map(item => (
+                  <View
+                    key={
+                      item.tipoManutencaoId
+                    }
+                    style={
+                      styles.maintenanceItem
+                    }
                   >
-                    {item.status}
-                  </Text>
-                </View>
-              ))
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+                    <Text
+                      style={
+                        styles.itemTitle
+                      }
+                    >
+                      {item.nome}
+                    </Text>
+
+                    <Text
+                      style={
+                        styles.itemInfo
+                      }
+                    >
+                      Última troca:{' '}
+                      {item.ultimaTrocaKm
+                        ? `${item.ultimaTrocaKm.toLocaleString()} km`
+                        : 'Não registrada'}
+                    </Text>
+
+                    <Text
+                      style={
+                        styles.itemInfo
+                      }
+                    >
+                      Próxima troca:{' '}
+                      {item.proximaTrocaKm
+                        ? `${item.proximaTrocaKm.toLocaleString()} km`
+                        : 'Não definida'}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.status,
+                        {
+                          color:
+                            getStatusColor(
+                              item.status
+                            ),
+                        },
+                      ]}
+                    >
+                      {item.status}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </>
   );
 }
 
@@ -220,6 +490,53 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 40,
     backgroundColor: '#fff',
+  },
+
+  editButton: {
+    width: '90%',
+    backgroundColor: '#2563EB',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+
+  deleteButton: {
+    width: '90%',
+    backgroundColor: '#DC2626',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+
+  cancelButton: {
+    backgroundColor: '#6B7280',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
   },
 
   photoContainer: {

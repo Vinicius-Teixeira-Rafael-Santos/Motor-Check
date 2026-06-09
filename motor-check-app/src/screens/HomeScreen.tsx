@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import { Picker } from '@react-native-picker/picker';
+import { useFocusEffect } from '@react-navigation/native';
 
 import {
   View,
@@ -44,10 +45,15 @@ export default function HomeScreen({ navigation }: Props) {
   const [modeloId, setModeloId] = useState('');
   const [anoId, setAnoId] = useState('');
 
+  useFocusEffect(
+    useCallback(() => {
+      loadVehicles();
+    }, [])
+  );
+
   useEffect(() => {
-  loadVehicles();
-  loadMarcas(tipo);
-}, []);
+    loadMarcas(tipo);
+  }, []);
 
   async function loadVehicles() {
     try {
