@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 
 import vehicleRoutes from './routes/vehicle.routes';
 import fipeRoutes from './routes/fipe.routes';
+import maintenanceRoutes from './routes/maintence.routes';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -19,10 +20,12 @@ app.use('/fipe', fipeRoutes);
 /* ROTAS DE VEÍCULO */
 app.use('/vehicles', vehicleRoutes);
 
+/* ROTAS DE MANUTENÇÃO */
+app.use('/maintenances', maintenanceRoutes);
+
 /* REGISTER */
 app.post('/register', async (req, res) => {
   try {
-
     const { name, email, password } = req.body;
 
     const userExists = await prisma.user.findUnique({
@@ -48,9 +51,7 @@ app.post('/register', async (req, res) => {
     });
 
     return res.status(201).json(user);
-
   } catch (error) {
-
     console.log(error);
 
     return res.status(500).json({
@@ -61,13 +62,13 @@ app.post('/register', async (req, res) => {
 
 /* LOGIN */
 app.post('/login', async (req, res) => {
-
   try {
-
     const { email, password } = req.body;
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: {
+        email,
+      },
     });
 
     if (!user) {
@@ -101,8 +102,8 @@ app.post('/login', async (req, res) => {
       user,
       token,
     });
-
   } catch (error) {
+    console.log(error);
 
     return res.status(500).json({
       error: 'Erro interno',

@@ -83,7 +83,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-/* BUSCAR PRÓXIMAS MANUTENÇÕES */
+/* STATUS DAS MANUTENÇÕES */
 router.get(
   '/status/:vehicleId',
   auth,
@@ -91,18 +91,20 @@ router.get(
     try {
       const vehicleId = Number(req.params.vehicleId);
 
-      const vehicle =
-        await prisma.vehicle.findUnique({
-          where: {
-            id: vehicleId,
-          },
-        });
+      const vehicle = await prisma.vehicle.findUnique({
+        where: {
+          id: vehicleId,
+        },
+      });
 
       if (!vehicle) {
         return res.status(404).json({
           error: 'Veículo não encontrado',
         });
       }
+
+      const maintenanceTypes =
+        await prisma.maintenanceType.findMany();
 
       const maintenances =
         await prisma.maintenance.findMany({
@@ -114,24 +116,52 @@ router.get(
           },
         });
 
-      const result = maintenances.map(item => {
+      const result = maintenanceTypes.map(type => {
+        const maintenance = maintenances.find(
+          item => item.tipoManutencaoId === type.id
+        );
+
+        const intervalo =
+          vehicle.tipoUso === 'leve'
+            ? type.intervaloLeveKm
+            : vehicle.tipoUso === 'intenso'
+            ? type.intervaloIntensoKm
+            : type.intervaloModeradoKm;
+
+        if (!maintenance) {
+          return {
+            tipoManutencaoId: type.id,
+            nome: type.nome,
+            ultimaTrocaKm: null,
+            proximaTrocaKm: intervalo,
+            status: 'NÃO REGISTRADA',
+          };
+        }
+
         let status = 'EM DIA';
 
         if (
-          item.proximaTrocaKm &&
-          vehicle.quilometragem >= item.proximaTrocaKm
+          maintenance.proximaTrocaKm &&
+          vehicle.quilometragem >=
+            maintenance.proximaTrocaKm
         ) {
           status = 'ATRASADA';
         } else if (
-          item.proximaTrocaKm &&
+          maintenance.proximaTrocaKm &&
           vehicle.quilometragem >=
-            item.proximaTrocaKm - 1000
+            maintenance.proximaTrocaKm - 1000
         ) {
           status = 'ATENÇÃO';
         }
 
         return {
-          ...item,
+          id: maintenance.id,
+          tipoManutencaoId: type.id,
+          nome: type.nome,
+          ultimaTrocaKm:
+            maintenance.ultimaTrocaKm,
+          proximaTrocaKm:
+            maintenance.proximaTrocaKm,
           status,
         };
       });
