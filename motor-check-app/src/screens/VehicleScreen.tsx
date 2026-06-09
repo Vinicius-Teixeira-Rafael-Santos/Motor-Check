@@ -16,9 +16,11 @@ export default function VehicleScreen({ route }: any) {
   const [preventiveExpanded, setPreventiveExpanded] = useState(false);
 
   const [vehicle, setVehicle] = useState<any>(null);
+  const [maintenances, setMaintenances] = useState<any[]>([]);
 
   useEffect(() => {
     loadVehicle();
+    loadMaintenances();
   }, []);
 
   async function loadVehicle() {
@@ -27,6 +29,34 @@ export default function VehicleScreen({ route }: any) {
       setVehicle(response.data);
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  async function loadMaintenances() {
+    try {
+      const response = await api.get(
+        `/maintenances/status/${vehicleId}`
+      );
+
+      setMaintenances(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function getStatusColor(status: string) {
+    switch (status) {
+      case 'ATRASADA':
+        return '#DC2626';
+
+      case 'ATENÇÃO':
+        return '#F59E0B';
+
+      case 'EM DIA':
+        return '#16A34A';
+
+      default:
+        return '#6B7280';
     }
   }
 
@@ -60,19 +90,19 @@ export default function VehicleScreen({ route }: any) {
 
       <View style={styles.maintenanceBox}>
         <Text style={styles.maintenanceText}>
-          Última manutenção:
+          Total de preventivas:
         </Text>
 
         <Text style={styles.maintenanceInfo}>
-          Não registrada
+          {maintenances.length}
         </Text>
 
         <Text style={styles.maintenanceText}>
-          Próxima recomendada:
+          Quilometragem atual:
         </Text>
 
         <Text style={styles.maintenanceInfo}>
-          Consulte o plano de manutenção
+          {vehicle.quilometragem?.toLocaleString()} km
         </Text>
       </View>
 
@@ -114,6 +144,10 @@ export default function VehicleScreen({ route }: any) {
             <Text style={styles.item}>
               • Combustível: {vehicle.combustivel}
             </Text>
+
+            <Text style={styles.item}>
+              • Tipo de uso: {vehicle.tipoUso}
+            </Text>
           </View>
         )}
       </TouchableOpacity>
@@ -130,53 +164,49 @@ export default function VehicleScreen({ route }: any) {
 
         {preventiveExpanded && (
           <View style={styles.cardContent}>
-            <Text style={styles.itemTitle}>
-              Troca de óleo
-            </Text>
+            {maintenances.length === 0 ? (
+              <Text style={styles.itemInfo}>
+                Nenhuma preventiva encontrada.
+              </Text>
+            ) : (
+              maintenances.map(item => (
+                <View
+                  key={item.tipoManutencaoId}
+                  style={styles.maintenanceItem}
+                >
+                  <Text style={styles.itemTitle}>
+                    {item.nome}
+                  </Text>
 
-            <Text style={styles.itemInfo}>
-              Última: Não registrada
-            </Text>
+                  <Text style={styles.itemInfo}>
+                    Última troca:{' '}
+                    {item.ultimaTrocaKm
+                      ? `${item.ultimaTrocaKm.toLocaleString()} km`
+                      : 'Não registrada'}
+                  </Text>
 
-            <Text style={styles.itemInfo}>
-              Próxima: 10.000 km
-            </Text>
+                  <Text style={styles.itemInfo}>
+                    Próxima troca:{' '}
+                    {item.proximaTrocaKm
+                      ? `${item.proximaTrocaKm.toLocaleString()} km`
+                      : 'Não definida'}
+                  </Text>
 
-            <Text style={styles.itemTitle}>
-              Filtro de óleo
-            </Text>
-
-            <Text style={styles.itemInfo}>
-              Última: Não registrada
-            </Text>
-
-            <Text style={styles.itemInfo}>
-              Próxima: 10.000 km
-            </Text>
-
-            <Text style={styles.itemTitle}>
-              Filtro de ar
-            </Text>
-
-            <Text style={styles.itemInfo}>
-              Última: Não registrada
-            </Text>
-
-            <Text style={styles.itemInfo}>
-              Próxima: 20.000 km
-            </Text>
-
-            <Text style={styles.itemTitle}>
-              Velas
-            </Text>
-
-            <Text style={styles.itemInfo}>
-              Última: Não registrada
-            </Text>
-
-            <Text style={styles.itemInfo}>
-              Próxima: 40.000 km
-            </Text>
+                  <Text
+                    style={[
+                      styles.status,
+                      {
+                        color: getStatusColor(
+                          item.status
+                        ),
+                      },
+                    ]}
+                  >
+                    {item.status}
+                  </Text>
+                </View>
+              ))
+            )}
           </View>
         )}
       </TouchableOpacity>
@@ -263,10 +293,17 @@ const styles = StyleSheet.create({
     color: '#444',
   },
 
+  maintenanceItem: {
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+
   itemTitle: {
     fontSize: 17,
     fontWeight: 'bold',
-    marginTop: 15,
+    marginBottom: 5,
     color: '#222',
   },
 
@@ -274,5 +311,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#555',
     marginTop: 3,
+  },
+
+  status: {
+    marginTop: 8,
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });
