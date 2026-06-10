@@ -8,108 +8,103 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  nome      String
-  email     String    @unique
-  senha     String
+  nome  String
+  email String @unique
+  senha String
 
-  veiculos  Vehicle[]
+  veiculos Vehicle[]
 }
 
 model Vehicle {
-  id                Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  usuarioId         Int
-  usuario           User     @relation(fields: [usuarioId], references: [id])
+  usuarioId Int
+  usuario   User @relation(fields: [usuarioId], references: [id])
 
-  nome              String?
+  nome String?
 
-  placa             String   @unique
+  placa String @unique
 
-  modelo            String
-  marca             String?
+  modelo String
+  marca  String?
 
   // FIPE
-  codigoMarcaFipe   String?
-  codigoModeloFipe  String?
-  codigoAnoFipe     String?
+  codigoMarcaFipe  String?
+  codigoModeloFipe String?
+  codigoAnoFipe    String?
 
-  ano               Int?
+  ano Int?
 
-  quilometragem     Int      @default(0)
+  quilometragem Int @default(0)
 
-  combustivel       String
-  tipo              String
+  combustivel String
+  tipo        String
 
   // leve | moderado | intenso
-  tipoUso           String   @default("moderado")
+  tipoUso String @default("moderado")
 
-  manutencoes       Maintenance[]
+  manutencoes Maintenance[]
+  revisoes    Revision[]
 
-  revisoes          Revision[]
-
-  criadoEm          DateTime @default(now())
+  criadoEm DateTime @default(now())
 }
 
 model MaintenanceType {
-  id                          Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  nome                        String
+  nome String
 
-  intervaloLeveKm             Int?
-  intervaloModeradoKm         Int?
-  intervaloIntensoKm          Int?
+  intervaloLeveKm     Int?
+  intervaloModeradoKm Int?
+  intervaloIntensoKm  Int?
 
-  intervaloPadraoDias         Int?
+  intervaloPadraoDias Int?
 
-  obrigatorioMoto             Boolean  @default(true)
-  obrigatorioCarro            Boolean  @default(true)
+  obrigatorioMoto  Boolean @default(true)
+  obrigatorioCarro Boolean @default(true)
 
-  manutencoes                 Maintenance[]
+  manutencoes Maintenance[]
 }
 
 model Maintenance {
-  id                          Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  veiculoId                   Int
-  tipoManutencaoId            Int
+  veiculoId        Int
+  tipoManutencaoId Int
 
-  veiculo                     Vehicle @relation(fields: [veiculoId], references: [id])
+  veiculo Vehicle @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
 
-  tipoManutencao              MaintenanceType @relation(fields: [tipoManutencaoId], references: [id])
+  tipoManutencao MaintenanceType @relation(fields: [tipoManutencaoId], references: [id])
 
-  ultimaTrocaKm               Int?
+  ultimaTrocaKm   Int?
+  ultimaTrocaData DateTime?
 
-  ultimaTrocaData             DateTime?
+  proximaTrocaKm   Int?
+  proximaTrocaData DateTime?
 
-  proximaTrocaKm              Int?
+  observacoes String?
 
-  proximaTrocaData            DateTime?
-
-  observacoes                 String?
-
-  criadoEm                    DateTime @default(now())
+  criadoEm DateTime @default(now())
 }
 
 model Revision {
-  id                          Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  veiculoId                   Int
+  veiculoId Int
 
-  veiculo                     Vehicle @relation(fields: [veiculoId], references: [id])
+  veiculo Vehicle @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
 
-  nome                        String
+  nome String
 
-  ultimaRevisaoKm             Int?
+  ultimaRevisaoKm   Int?
+  ultimaRevisaoData DateTime?
 
-  ultimaRevisaoData           DateTime?
+  proximaRevisaoKm   Int?
+  proximaRevisaoData DateTime?
 
-  proximaRevisaoKm            Int?
+  observacoes String?
 
-  proximaRevisaoData          DateTime?
-
-  observacoes                 String?
-
-  criadoEm                    DateTime @default(now())
+  criadoEm DateTime @default(now())
 }

@@ -39,6 +39,12 @@ export default function VehicleScreen({
   const [tipo, setTipo] = useState('');
   const [tipoUso, setTipoUso] = useState('');
 
+  const [maintenanceModalVisible, setMaintenanceModalVisible] =
+    useState(false);
+
+  const [tipoManutencaoId, setTipoManutencaoId] = useState('');
+  const [observacoes, setObservacoes] = useState('');
+
   useEffect(() => {
     loadVehicle();
     loadMaintenances();
@@ -156,6 +162,29 @@ export default function VehicleScreen({
         },
       ]
     );
+  }
+
+  async function registerMaintenance() {
+    try {
+      await api.post('/maintenances', {
+        veiculoId: vehicleId,
+        tipoManutencaoId: Number(tipoManutencaoId),
+        quilometragemAtual: vehicle.quilometragem,
+        observacoes,
+      });
+
+      Alert.alert('Sucesso', 'Manutenção registrada.');
+
+      setMaintenanceModalVisible(false);
+      setTipoManutencaoId('');
+      setObservacoes('');
+
+      await loadMaintenances();
+    } catch (error) {
+      console.log(error);
+
+      Alert.alert('Erro', 'Não foi possível registrar a manutenção.');
+    }
   }
 
   function getStatusColor(
@@ -294,6 +323,52 @@ export default function VehicleScreen({
         </ScrollView>
       </Modal>
 
+      <Modal
+        visible={maintenanceModalVisible}
+        animationType="slide"
+      >
+        <ScrollView style={{ flex: 1, padding: 20 }}>
+          <Text style={styles.modalTitle}>
+            Registrar Manutenção
+          </Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="ID do tipo de manutenção"
+            keyboardType="numeric"
+            value={tipoManutencaoId}
+            onChangeText={setTipoManutencaoId}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Observações"
+            value={observacoes}
+            onChangeText={setObservacoes}
+          />
+
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={registerMaintenance}
+          >
+            <Text style={styles.buttonText}>
+              Registrar
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() =>
+              setMaintenanceModalVisible(false)
+            }
+          >
+            <Text style={styles.buttonText}>
+              Cancelar
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </Modal>
+
       <ScrollView
         contentContainerStyle={
           styles.container
@@ -313,6 +388,15 @@ export default function VehicleScreen({
         >
           <Text style={styles.buttonText}>
             Excluir Veículo
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => setMaintenanceModalVisible(true)}
+        >
+          <Text style={styles.buttonText}>
+            Registrar Manutenção
           </Text>
         </TouchableOpacity>
 

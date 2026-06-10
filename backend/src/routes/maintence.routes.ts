@@ -5,6 +5,25 @@ import { auth } from '../middlewares/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
+/* LISTAR TIPOS DE MANUTENÇÃO */
+router.get('/types/all', auth, async (req, res) => {
+  try {
+    const types = await prisma.maintenanceType.findMany({
+      orderBy: {
+        nome: 'asc',
+      },
+    });
+
+    return res.json(types);
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      error: 'Erro ao buscar tipos de manutenção',
+    });
+  }
+});
+
 /* LISTAR MANUTENÇÕES DE UM VEÍCULO */
 router.get('/:vehicleId', auth, async (req, res) => {
   try {
