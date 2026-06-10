@@ -44,16 +44,49 @@ export default function HomeScreen({ navigation }: Props) {
   const [marcaId, setMarcaId] = useState('');
   const [modeloId, setModeloId] = useState('');
   const [anoId, setAnoId] = useState('');
+  const [alertas, setAlertas] = useState<any[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       loadVehicles();
+      loadAlerts();
     }, [])
   );
 
   useEffect(() => {
     loadMarcas(tipo);
   }, []);
+
+  async function loadAlerts() {
+    try {
+      const vehiclesResponse = await api.get('/vehicles');
+
+      const alerts: any[] = [];
+
+      for (const vehicle of vehiclesResponse.data) {
+        const response = await api.get(
+          `/maintenances/status/${vehicle.id}`
+        );
+
+        const pendentes = response.data.filter(
+          (item: any) =>
+            item.status === 'ATRASADA' ||
+            item.status === 'ATENÇÃO'
+        );
+
+        if (pendentes.length > 0) {
+          alerts.push({
+            vehicle,
+            maintenances: pendentes,
+          });
+        }
+      }
+
+      setAlertas(alerts);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async function loadVehicles() {
     try {
@@ -160,6 +193,35 @@ async function loadAnos(modelo: string) {
           </View>
         </View>
 
+        {alertas.length > 0 && (
+  <>
+    <Text style={styles.alertTitle}>
+      ⚠️ Alertas de manutenção
+    </Text>
+
+    {alertas.map((alerta, index) => (
+      <View
+        key={index}
+        style={styles.alertCard}
+      >
+        <Text style={styles.alertVehicle}>
+          {alerta.vehicle.marca} {alerta.vehicle.modelo}
+        </Text>
+
+        {alerta.maintenances.map(
+          (item: any) => (
+            <Text
+              key={item.tipoManutencaoId}
+              style={styles.alertText}
+            >
+              • {item.nome} - {item.status}
+            </Text>
+          )
+        )}
+      </View>
+    ))}
+  </>
+)}
         <Text style={styles.sectionTitle}>
           Meus Veículos
         </Text>
@@ -410,4 +472,30 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: '#6B7280',
   },
+  alertTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#DC2626',
+  marginBottom: 10,
+},
+
+alertCard: {
+  backgroundColor: '#FEF2F2',
+  borderWidth: 1,
+  borderColor: '#FCA5A5',
+  borderRadius: 15,
+  padding: 15,
+  marginBottom: 10,
+},
+
+alertVehicle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  marginBottom: 5,
+},
+
+alertText: {
+  color: '#991B1B',
+  marginTop: 2,
+},
 });
